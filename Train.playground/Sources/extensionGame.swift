@@ -12,18 +12,21 @@ public class GameScene : SKScene {
     var currentTrack:Track? = nil
     var nextTrack:Track? = nil
     
+    var arrowButtons:[SKSpriteNode] = []
+    var arrowButtonsID:[String:Int] = [:] //0: Lelf, 1: Up, 2: Right, 3: Down
+    var currentArrow = 0
         
     public override func didMove (to view: SKView) {
         self.backgroundColor = NSColor(red: 0.43, green: 0.17, blue: 0.0, alpha: 1.0)
         
-        
+        self.createArrowButtons()
         
         currentTrack = Track(name: "track1",
-                             initialSpeed: 100.0,
+                             initialSpeed: 200.0,
                              initialY: 0.0)                 //Creates the first track to be shown
         
         nextTrack = Track(name: "track2",
-                          initialSpeed: 100.0,
+                          initialSpeed: 200.0,
                           initialY: (scene?.size.height)! + 10.0)  //Creates the track that's going to be on the top of the screen
         
         self.addChild(currentTrack!.sprite!)
@@ -53,6 +56,15 @@ public class GameScene : SKScene {
         }
     }
     
+    public override func mouseDown(with: NSEvent) {
+        // Get mouse position in scene coordinates
+        let location = with.location(in: self)
+        // Get node at mouse position
+        let node = self.atPoint(location)
+        if (node.name == "repair_button") {
+            text.text = "clicou"
+        }
+    }
     
     public override func keyDown(with event: NSEvent) {                     //Checks if the player has pressed a arrow keyboard button
         switch Int(event.keyCode) {
@@ -87,6 +99,22 @@ public class GameScene : SKScene {
 
         self.addChild(train)
     }
+    
+    func createArrowButtons() {
+        let button = SKSpriteNode(imageNamed: "arrow_button")
+        button.name = "up"
+        
+        button.position = CGPoint(x: (scene?.size.width)!/3, y: -200)
+        
+        button.xScale = 1.3
+        button.yScale = 1.3
+        
+        arrowButtons.append(button)
+        arrowButtonsID[button.name!] = 0
+        
+        self.addChild(button)
+    }
+    
     
     func testLabel () {
         text.fontSize = 40
