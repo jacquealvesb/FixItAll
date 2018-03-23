@@ -62,7 +62,7 @@ public class GameScene : SKScene {
         // Get node at mouse position
         let node = self.atPoint(location)
         if (node.name == "repair_button") {
-            text.text = "clicou"
+            showButtonArrows()
         }
     }
     
@@ -101,18 +101,54 @@ public class GameScene : SKScene {
     }
     
     func createArrowButtons() {
-        let button = SKSpriteNode(imageNamed: "arrow_button")
-        button.name = "up"
+
+        for i in 0...3 {
+            let button = SKSpriteNode(imageNamed: "arrow_button")
+            
+            
+            switch(i){
+            case 0:
+                button.name = "left"
+                button.position = CGPoint(x: (scene?.size.width)!/3 - 100, y: -220)
+                break
+            case 1:
+                button.name = "up"
+                button.zRotation = -CGFloat(Double.pi/2)
+                button.position = CGPoint(x: (scene?.size.width)!/3, y: -130)
+                break
+            case 2:
+                button.name = "right"
+                button.zRotation = CGFloat(Double.pi)
+                button.position = CGPoint(x: (scene?.size.width)!/3 + 100, y: -220)
+                break
+            case 3:
+                button.name = "down"
+                button.zRotation = CGFloat(Double.pi/2)
+                button.position = CGPoint(x: (scene?.size.width)!/3, y: -320)
+                break
+            default:
+                text.text = "erro"   
+                break
+            }
+            
+            
+            
+            button.xScale = 1.3
+            button.yScale = 1.3
+            
+            arrowButtons.append(button)
+            arrowButtonsID[button.name!] = i
+            
+        }
         
-        button.position = CGPoint(x: (scene?.size.width)!/3, y: -200)
+    }
+    
+    func showButtonArrows(){
+        for i in 0...3 {
+            self.addChild(arrowButtons[i])
+        }
         
-        button.xScale = 1.3
-        button.yScale = 1.3
-        
-        arrowButtons.append(button)
-        arrowButtonsID[button.name!] = 0
-        
-        self.addChild(button)
+        arrowButtons[0].texture = SKTexture(imageNamed: "arrowHighlighted_button")
     }
     
     
