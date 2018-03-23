@@ -69,6 +69,11 @@ public class GameScene : SKScene {
     public override func keyDown(with event: NSEvent) {                     //Checks if the player has pressed a arrow keyboard button
         switch Int(event.keyCode) {
             case LEFT_ARROW:
+                if(currentArrow == 0){
+                    arrowButtons[currentArrow].texture = SKTexture(imageNamed: "arrow_button")
+                    currentArrow = 1
+                    arrowButtons[currentArrow].texture = SKTexture(imageNamed: "arrowHighlighted_button")
+                }
                 text.text = "esquerda"
                 break
             case RIGHT_ARROW:
