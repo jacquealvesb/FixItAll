@@ -8,9 +8,13 @@ let DOWN_ARROW = 125
 let UP_ARROW = 126
 
 public class GameScene : SKScene {
-    let text = SKLabelNode(fontNamed: "Arial")
+
     var currentTrack:Track? = nil
     var nextTrack:Track? = nil
+    
+    let text = SKLabelNode(fontNamed: "Arial")
+    let repairFeedback = SKSpriteNode(imageNamed: "repair_feedback [notfixed-0]")
+    let repairFeedbackRotate = SKSpriteNode(imageNamed: "repair_feedback [notfixed-1]")
     
     var arrowButtons:[SKSpriteNode] = []
     var currentArrow = 0
@@ -49,6 +53,7 @@ public class GameScene : SKScene {
         self.testLabel()
         self.createTrain()
         self.createFixStatus()
+        self.createRepairFeedback()
         
         timer = Timer.scheduledTimer(timeInterval: Double(currentTrack!.speed/100), target: self, selector: #selector(updateDistance), userInfo: nil, repeats: true)
         
@@ -148,7 +153,8 @@ public class GameScene : SKScene {
     func testLabel () {
         text.fontSize = 40
         text.fontColor = SKColor.white
-        text.position = CGPoint(x: (scene!.size.width)/2 - 100, y: (scene!.size.width)/2 - 200)
+        text.position = CGPoint(x: -(scene!.size.width)/2 + 80, y: (scene!.size.width)/2 - 200)
+        text.zPosition = 3
         
         text.text = "0.0m"
         
@@ -192,6 +198,26 @@ public class GameScene : SKScene {
             arrowButtons.append(button)
             
         }
+        
+    }
+    
+    func createRepairFeedback(){
+        repairFeedback.xScale = 1.3
+        repairFeedback.yScale = 1.3
+        
+        repairFeedback.position = CGPoint(x: (scene!.size.width)/2 - 180, y: (scene!.size.width)/2 - 280)
+        
+        repairFeedbackRotate.xScale = 1.3
+        repairFeedbackRotate.yScale = 1.3
+        
+        repairFeedbackRotate.position = CGPoint(x: (scene!.size.width)/2 - 122, y: (scene!.size.width)/2 - 218)
+        repairFeedbackRotate.anchorPoint = CGPoint(x: 0.2, y: 0.8)
+        
+        let repairFeedbackAction = SKAction.repeatForever(
+              SKAction.rotate(byAngle: -CGFloat.pi, duration: 1)
+        )
+        
+        repairFeedbackRotate.run(repairFeedbackAction)
         
     }
     
@@ -239,11 +265,11 @@ public class GameScene : SKScene {
         currentTrack!.addSpeed(40)                                  //Increases speed
         nextTrack!.addSpeed(40)
         
-        if(maxSpins.truncatingRemainder(dividingBy: 2.0) == 0.0){   //Increases the minimum amount of sequences to be completed to fix the track
-            maxSpins += 1.0
-        }
         currentSpins = 0.0
         showingArrows = false
+        
+        repairFeedback.removeFromParent()
+        repairFeedbackRotate.removeFromParent()
     }
     
     /*-------------------------------Arrow Buttons-------------------------------*/
@@ -255,6 +281,9 @@ public class GameScene : SKScene {
         }
         
         arrowButtons[0].texture = SKTexture(imageNamed: "arrowHighlighted_button")
+        
+        self.addChild(repairFeedback)
+        self.addChild(repairFeedbackRotate)
     }
     
     func checkArrowPress(_ pressedArrow:Int){
