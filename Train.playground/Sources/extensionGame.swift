@@ -13,43 +13,86 @@ public class GameScene : SKScene {
     var nextTrack:Track? = nil
     
     var arrowButtons:[SKSpriteNode] = []
-    var arrowButtonsID:[String:Int] = [:] //0: Lelf, 1: Up, 2: Right, 3: Down
     var currentArrow = 0
-        
+    var showingArrows = false
+    
+    var fixStatus:SKSpriteNode? = nil
+    let maxFixStatusWidth:CGFloat = 250.0
+    var maxSpins:CGFloat = 3.0
+    var currentSpins:CGFloat = 0.0
+    var normalTracks = 3                    //Checks if 3 normal tracks were showed in a roll
+    
+    var distance = 0.0
+    var timer:Timer? = nil
+    
     public override func didMove (to view: SKView) {
         self.backgroundColor = NSColor(red: 0.43, green: 0.17, blue: 0.0, alpha: 1.0)
         
         self.createArrowButtons()
         
         currentTrack = Track(name: "track1",
-                             initialSpeed: 200.0,
-                             initialY: 0.0)                 //Creates the first track to be shown
-        
-        nextTrack = Track(name: "track2",
-                          initialSpeed: 200.0,
-                          initialY: (scene?.size.height)! + 10.0)  //Creates the track that's going to be on the top of the screen
+                             initialSpeed: 100.0,
+                             initialY: 0.0,
+                             type: "n")                 //Creates the first track to be shown
         
         self.addChild(currentTrack!.sprite!)
+        
+        nextTrack = Track(name: "track2",
+                          initialSpeed: 100.0,
+                          initialY: (scene?.size.height)! + 10.0,
+                          type: "b")           //Creates the track that's going to be on the top of the screen
+        
+        
         self.addChild(nextTrack!.sprite!)
+        self.addChild(nextTrack!.repairButton!)
         
         self.testLabel()
-        
         self.createTrain()
+        self.createFixStatus()
         
+        timer = Timer.scheduledTimer(timeInterval: Double(currentTrack!.speed/100), target: self, selector: #selector(runTimedCode), userInfo: nil, repeats: true)
     }
     
+    @objc func runTimedCode() {
+        distance += 0.5
+        text.text = "\(distance)m"
+    }
+
     public override func update(_ currentTime: TimeInterval) {
+
         if(currentTrack!.sprite!.position.y <= -(scene?.size.height)!) {    //Checks if the current track is not visible on the screen anymore
-            let trackAux = currentTrack                                     //Switches the current and next tracks
-            currentTrack = nextTrack
-            nextTrack = trackAux
-            
-            nextTrack!.drawImage()                                          //Draws the type and image of the next track
-            nextTrack!.sprite!.position.y = (scene?.size.height)! + 10.0           //Sets its position to the top of the screen
-            
-            if(nextTrack!.type != "n"){
-                if let repairButton = nextTrack!.createRepairButton() {
-                    self.addChild(repairButton)
+            if(currentTrack!.type != "n"){
+                text.text = "PERDEU"
+            } else {
+                let trackAux = currentTrack                                     //Switches the current and next tracks
+                currentTrack = nextTrack
+                nextTrack = trackAux
+                
+                if(showingArrows == false){
+                    nextTrack!.drawImage()                                          //Draws the type and image of the next track
+                } else {
+                    nextTrack!.switchImage(newImage: "track")
+                }
+                nextTrack!.resetPosition(scene: scene!)                         //Sets its position to the top of the screen
+                nextTrack!.repairButton!.removeFromParent()
+                
+                if(nextTrack!.type != "n"){
+                    if(showingArrows == false){
+                        showingArrows = true
+                        self.addChild(nextTrack!.repairButton!)
+                    }
+                    
+                    normalTracks = 3
+                } else {
+                    normalTracks -= 1
+                    if(normalTracks == 0 && showingArrows == false){
+                        nextTrack!.switchImage(newImage: "track_broken")
+                        
+                        showingArrows = true
+                        self.addChild(nextTrack!.repairButton!)
+                        
+                        normalTracks = 3
+                    }
                 }
                 
             }
@@ -62,6 +105,7 @@ public class GameScene : SKScene {
         // Get node at mouse position
         let node = self.atPoint(location)
         if (node.name == "repair_button") {
+            node.removeFromParent()
             showButtonArrows()
         }
     }
@@ -69,25 +113,67 @@ public class GameScene : SKScene {
     public override func keyDown(with event: NSEvent) {                     //Checks if the player has pressed a arrow keyboard button
         switch Int(event.keyCode) {
             case LEFT_ARROW:
-                if(currentArrow == 0){
-                    arrowButtons[currentArrow].texture = SKTexture(imageNamed: "arrow_button")
-                    currentArrow = 1
-                    arrowButtons[currentArrow].texture = SKTexture(imageNamed: "arrowHighlighted_button")
-                }
-                text.text = "esquerda"
+                checkArrowPress(0)
                 break
-            case RIGHT_ARROW:
-                text.text = "direita"
-            break
             case UP_ARROW:
-                text.text = "cima"
+                checkArrowPress(1)
+            break
+            case RIGHT_ARROW:
+                checkArrowPress(2)
             break
             case DOWN_ARROW:
-                text.text = "baixo"
+                checkArrowPress(3)
                 break
             default:
             break
         }
+    }
+    
+    func checkArrowPress(_ pressedArrow:Int){
+        arrowButtons[currentArrow].texture = SKTexture(imageNamed: "arrow_button")
+        
+        if(pressedArrow == currentArrow){
+            if(currentArrow == 3){
+                currentArrow = 0
+                currentSpins += 1
+                fixStatus!.size.width += maxFixStatusWidth/maxSpins
+
+            } else {
+                currentArrow += 1
+            }
+            
+        } else {
+            currentArrow = 0
+        }
+        arrowButtons[currentArrow].texture = SKTexture(imageNamed: "arrowHighlighted_button")
+        
+        if(currentSpins == maxSpins){
+            fixTrack()
+        }
+    }
+    
+    func fixTrack(){
+        for arrow in arrowButtons {                 //Removes all arrows from the scene
+            arrow.removeFromParent()
+        }
+        fixStatus!.size.width = 0.0                 //Removes the fix status from the scene
+        
+        if(currentTrack!.type != "n"){
+            currentTrack!.switchImage(newImage: "track") //Changes the track's image
+            currentTrack!.type = "n"
+        } else if(nextTrack!.type != "n") {
+            nextTrack!.switchImage(newImage: "track") //Changes the track's image
+            nextTrack!.type = "n"
+        }
+        
+        currentTrack!.addSpeed(40)
+        nextTrack!.addSpeed(40)
+        
+        if(maxSpins.truncatingRemainder(dividingBy: 2.0) == 0.0){
+            maxSpins += 1.0
+        }
+        currentSpins = 0.0
+        showingArrows = false
     }
     
     func createTrain(){
@@ -98,11 +184,23 @@ public class GameScene : SKScene {
         train.xScale = 1.3
         train.yScale = 1.3
         
-        //train.size.height - (scene?.size.height)!/2
+        let trainSequence = SKAction.sequence(  [SKAction.scale(to: 1.5, duration: 0.5),
+                                                SKAction.scale(to: 1.3, duration: 0.5)])
+        
+        train.run(SKAction.repeatForever(trainSequence))
         
         train.position = CGPoint(x: 0.0, y: -(scene?.size.height)!/4 - train.size.height)
 
         self.addChild(train)
+    }
+    
+    func createFixStatus(){
+        fixStatus = SKSpriteNode(color:SKColor.yellow, size: CGSize(width: 0, height: 30))
+        
+        fixStatus!.position = CGPoint(x: -(scene!.size.width)/2 + 50, y: -(scene!.size.height)/2 + 50)
+        fixStatus!.anchorPoint = CGPoint(x: 0.0, y: 0.5)
+        
+        self.addChild(fixStatus!)
     }
     
     func createArrowButtons() {
@@ -136,21 +234,19 @@ public class GameScene : SKScene {
                 break
             }
             
-            
-            
             button.xScale = 1.3
             button.yScale = 1.3
             
             arrowButtons.append(button)
-            arrowButtonsID[button.name!] = i
             
         }
         
     }
     
     func showButtonArrows(){
-        for i in 0...3 {
-            self.addChild(arrowButtons[i])
+        for arrow in arrowButtons {
+            arrow.texture = SKTexture(imageNamed: "arrow_button")
+            self.addChild(arrow)
         }
         
         arrowButtons[0].texture = SKTexture(imageNamed: "arrowHighlighted_button")
@@ -160,7 +256,7 @@ public class GameScene : SKScene {
     func testLabel () {
         text.fontSize = 40
         text.fontColor = SKColor.white
-        text.position = CGPoint(x: 0, y: 0)
+        text.position = CGPoint(x: (scene!.size.width)/2 - 100, y: (scene!.size.width)/2 - 200)
         
         addChild(text)
     }
