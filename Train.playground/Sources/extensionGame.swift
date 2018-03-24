@@ -14,15 +14,15 @@ public class GameScene : SKScene {
     
     var arrowButtons:[SKSpriteNode] = []
     var currentArrow = 0
-    var showingArrows = false
+    var showingArrows = false                                           //Checks if the player is fixing a track
     
-    var fixStatus:SKSpriteNode? = nil
+    var fixStatus:SKSpriteNode? = nil                                   //Fixing status bar
     let maxFixStatusWidth:CGFloat = 250.0
-    var maxSpins:CGFloat = 3.0
+    var maxSpins:CGFloat = 3.0                                          //Number of sequence to complete to fix a track
     var currentSpins:CGFloat = 0.0
-    var normalTracks = 3                    //Checks if 3 normal tracks were showed in a roll
+    var normalTracks = 3                                                //Checks if 3 normal tracks were showed in a roll
     
-    var distance = 0.0
+    var distance:Float = 0.0
     var timer:Timer? = nil
     
     public override func didMove (to view: SKView) {
@@ -33,14 +33,14 @@ public class GameScene : SKScene {
         currentTrack = Track(name: "track1",
                              initialSpeed: 100.0,
                              initialY: 0.0,
-                             type: "n")                 //Creates the first track to be shown
+                             type: "n")                                 //Creates the first track to be shown
         
         self.addChild(currentTrack!.sprite!)
         
         nextTrack = Track(name: "track2",
                           initialSpeed: 100.0,
                           initialY: (scene?.size.height)! + 10.0,
-                          type: "b")           //Creates the track that's going to be on the top of the screen
+                          type: "b")                                    //Creates the track that's going to be on the top of the screen
         
         
         self.addChild(nextTrack!.sprite!)
@@ -50,34 +50,35 @@ public class GameScene : SKScene {
         self.createTrain()
         self.createFixStatus()
         
-        timer = Timer.scheduledTimer(timeInterval: Double(currentTrack!.speed/100), target: self, selector: #selector(runTimedCode), userInfo: nil, repeats: true)
-    }
-    
-    @objc func runTimedCode() {
-        distance += 0.5
-        text.text = "\(distance)m"
+        timer = Timer.scheduledTimer(timeInterval: Double(currentTrack!.speed/100), target: self, selector: #selector(updateDistance), userInfo: nil, repeats: true)
+        
     }
 
     public override func update(_ currentTime: TimeInterval) {
 
-        if(currentTrack!.sprite!.position.y <= -(scene?.size.height)!) {    //Checks if the current track is not visible on the screen anymore
-            if(currentTrack!.type != "n"){
-                text.text = "PERDEU"
+        if(currentTrack!.sprite!.position.y <= -(scene?.size.height)!) {//Checks if the current track is not visible on the screen anymore
+            if(currentTrack!.type != "n"){                              //Checks if a broken track has reached the end of the scene
+                if let gameOver = GameOver(fileNamed: "GameOver") {
+                    saveDistance ()                                     //Saves reached distance
+                    gameOver.scaleMode = .aspectFit
+                    
+                    view!.presentScene(gameOver)
+                }
             } else {
-                let trackAux = currentTrack                                     //Switches the current and next tracks
+                let trackAux = currentTrack                             //Switches the current and next tracks
                 currentTrack = nextTrack
                 nextTrack = trackAux
                 
-                if(showingArrows == false){
-                    nextTrack!.drawImage()                                          //Draws the type and image of the next track
+                if(showingArrows == false){                             //Checks if the player is fixing a track
+                    nextTrack!.drawImage()                              //Draws the type and image of the next track
                 } else {
                     nextTrack!.switchImage(newImage: "track")
                 }
-                nextTrack!.resetPosition(scene: scene!)                         //Sets its position to the top of the screen
+                nextTrack!.resetPosition(scene: scene!)                 //Sets its position to the top of the screen
                 nextTrack!.repairButton!.removeFromParent()
                 
-                if(nextTrack!.type != "n"){
-                    if(showingArrows == false){
+                if(nextTrack!.type != "n"){                             //Checks if the next track is broken or not
+                    if(showingArrows == false){                         //Checks if the player is fixing a track
                         showingArrows = true
                         self.addChild(nextTrack!.repairButton!)
                     }
@@ -85,7 +86,7 @@ public class GameScene : SKScene {
                     normalTracks = 3
                 } else {
                     normalTracks -= 1
-                    if(normalTracks == 0 && showingArrows == false){
+                    if(normalTracks == 0 && showingArrows == false){    //Checks if 3 normal tracks in a roll were showned
                         nextTrack!.switchImage(newImage: "track_broken")
                         
                         showingArrows = true
@@ -99,18 +100,22 @@ public class GameScene : SKScene {
         }
     }
     
+    @objc func updateDistance() {
+        distance += 0.5
+        text.text = "\(distance)m"
+    }
+    
     public override func mouseDown(with: NSEvent) {
-        // Get mouse position in scene coordinates
         let location = with.location(in: self)
-        // Get node at mouse position
         let node = self.atPoint(location)
-        if (node.name == "repair_button") {
-            node.removeFromParent()
-            showButtonArrows()
+        
+        if (node.name == "repair_button") {                         //Checks if the repair button was clicked
+            node.removeFromParent()                                 //Removes repair button from scene
+            showButtonArrows()                                      //Shows the arrow buttons
         }
     }
     
-    public override func keyDown(with event: NSEvent) {                     //Checks if the player has pressed a arrow keyboard button
+    public override func keyDown(with event: NSEvent) {             //Checks if the player has pressed a arrow keyboard button
         switch Int(event.keyCode) {
             case LEFT_ARROW:
                 checkArrowPress(0)
@@ -129,70 +134,7 @@ public class GameScene : SKScene {
         }
     }
     
-    func checkArrowPress(_ pressedArrow:Int){
-        arrowButtons[currentArrow].texture = SKTexture(imageNamed: "arrow_button")
-        
-        if(pressedArrow == currentArrow){
-            if(currentArrow == 3){
-                currentArrow = 0
-                currentSpins += 1
-                fixStatus!.size.width += maxFixStatusWidth/maxSpins
-
-            } else {
-                currentArrow += 1
-            }
-            
-        } else {
-            currentArrow = 0
-        }
-        arrowButtons[currentArrow].texture = SKTexture(imageNamed: "arrowHighlighted_button")
-        
-        if(currentSpins == maxSpins){
-            fixTrack()
-        }
-    }
-    
-    func fixTrack(){
-        for arrow in arrowButtons {                 //Removes all arrows from the scene
-            arrow.removeFromParent()
-        }
-        fixStatus!.size.width = 0.0                 //Removes the fix status from the scene
-        
-        if(currentTrack!.type != "n"){
-            currentTrack!.switchImage(newImage: "track") //Changes the track's image
-            currentTrack!.type = "n"
-        } else if(nextTrack!.type != "n") {
-            nextTrack!.switchImage(newImage: "track") //Changes the track's image
-            nextTrack!.type = "n"
-        }
-        
-        currentTrack!.addSpeed(40)
-        nextTrack!.addSpeed(40)
-        
-        if(maxSpins.truncatingRemainder(dividingBy: 2.0) == 0.0){
-            maxSpins += 1.0
-        }
-        currentSpins = 0.0
-        showingArrows = false
-    }
-    
-    func createTrain(){
-        let train = SKSpriteNode(imageNamed: "train")
-        
-        train.name = "train"
-        
-        train.xScale = 1.3
-        train.yScale = 1.3
-        
-        let trainSequence = SKAction.sequence(  [SKAction.scale(to: 1.5, duration: 0.5),
-                                                SKAction.scale(to: 1.3, duration: 0.5)])
-        
-        train.run(SKAction.repeatForever(trainSequence))
-        
-        train.position = CGPoint(x: 0.0, y: -(scene?.size.height)!/4 - train.size.height)
-
-        self.addChild(train)
-    }
+    /*-------------------------------UI-------------------------------*/
     
     func createFixStatus(){
         fixStatus = SKSpriteNode(color:SKColor.yellow, size: CGSize(width: 0, height: 30))
@@ -203,8 +145,18 @@ public class GameScene : SKScene {
         self.addChild(fixStatus!)
     }
     
+    func testLabel () {
+        text.fontSize = 40
+        text.fontColor = SKColor.white
+        text.position = CGPoint(x: (scene!.size.width)/2 - 100, y: (scene!.size.width)/2 - 200)
+        
+        text.text = "0.0m"
+        
+        addChild(text)
+    }
+    
     func createArrowButtons() {
-
+        
         for i in 0...3 {
             let button = SKSpriteNode(imageNamed: "arrow_button")
             
@@ -230,7 +182,7 @@ public class GameScene : SKScene {
                 button.position = CGPoint(x: (scene?.size.width)!/3, y: -320)
                 break
             default:
-                text.text = "erro"   
+                text.text = "erro"
                 break
             }
             
@@ -243,22 +195,89 @@ public class GameScene : SKScene {
         
     }
     
+    public func saveDistance (){
+        let userDefaults = UserDefaults.standard
+        
+        userDefaults.set(distance, forKey: "distance")
+        userDefaults.synchronize()
+    }
+    
+    /*-------------------------------Tracks and train-------------------------------*/
+    
+    func createTrain(){
+        let train = SKSpriteNode(imageNamed: "train")
+        
+        train.name = "train"
+        
+        train.xScale = 1.3
+        train.yScale = 1.3
+        
+        let trainSequence = SKAction.sequence(  [SKAction.scale(to: 1.35, duration: 0.5),
+                                                SKAction.scale(to: 1.3, duration: 0.5)])
+        
+        train.run(SKAction.repeatForever(trainSequence))
+        
+        train.position = CGPoint(x: 0.0, y: -(scene?.size.height)!/4 - train.size.height)
+
+        self.addChild(train)
+    }
+    
+    func fixTrack(){
+        for arrow in arrowButtons {                                 //Removes all arrows from the scene
+            arrow.removeFromParent()
+        }
+        fixStatus!.size.width = 0.0                                 //Hides the fix status from the scene
+        
+        if(currentTrack!.type != "n"){
+            currentTrack!.switchImage(newImage: "track")            //Changes the track's image
+            currentTrack!.type = "n"                                //Resets the track's type
+        } else if(nextTrack!.type != "n") {
+            nextTrack!.switchImage(newImage: "track")               //Changes the track's image
+            nextTrack!.type = "n"                                   //Resets the track's type
+        }
+        
+        currentTrack!.addSpeed(40)                                  //Increases speed
+        nextTrack!.addSpeed(40)
+        
+        if(maxSpins.truncatingRemainder(dividingBy: 2.0) == 0.0){   //Increases the minimum amount of sequences to be completed to fix the track
+            maxSpins += 1.0
+        }
+        currentSpins = 0.0
+        showingArrows = false
+    }
+    
+    /*-------------------------------Arrow Buttons-------------------------------*/
+    
     func showButtonArrows(){
         for arrow in arrowButtons {
-            arrow.texture = SKTexture(imageNamed: "arrow_button")
+            arrow.texture = SKTexture(imageNamed: "arrow_button")   //Resets the texture of the arrow
             self.addChild(arrow)
         }
         
         arrowButtons[0].texture = SKTexture(imageNamed: "arrowHighlighted_button")
     }
     
-    
-    func testLabel () {
-        text.fontSize = 40
-        text.fontColor = SKColor.white
-        text.position = CGPoint(x: (scene!.size.width)/2 - 100, y: (scene!.size.width)/2 - 200)
+    func checkArrowPress(_ pressedArrow:Int){
+        arrowButtons[currentArrow].texture = SKTexture(imageNamed: "arrow_button")  //Resets pressed arrow texture
         
-        addChild(text)
+        if(pressedArrow == currentArrow){                           //Checks if the right arrow was pressed
+            if(currentArrow == 3){                                  //Checks if the whole sequence was completed
+                currentArrow = 0
+                currentSpins += 1
+                fixStatus!.size.width += maxFixStatusWidth/maxSpins //Increases fixing bar
+                
+            } else {
+                currentArrow += 1
+            }
+            
+        } else {
+            currentArrow = 0
+        }
+        arrowButtons[currentArrow].texture = SKTexture(imageNamed: "arrowHighlighted_button")//Shows the next arrow to press
+        
+        if(currentSpins == maxSpins){                               //Checks if the seqence was completed 'n' times
+            fixTrack()
+        }
     }
-    
+ 
 }
