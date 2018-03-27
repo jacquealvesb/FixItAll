@@ -237,6 +237,7 @@ public class GameScene : SKScene {
         
         train.xScale = 1.3
         train.yScale = 1.3
+        train.zPosition = 4
         
         let trainSequence = SKAction.sequence(  [SKAction.scale(to: 1.35, duration: 0.5),
                                                 SKAction.scale(to: 1.3, duration: 0.5)])

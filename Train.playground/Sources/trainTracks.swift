@@ -96,6 +96,7 @@ public class Track {
         repairButton.xScale = 1.3
         repairButton.yScale = 1.3
         
+        
         repairButton.position = CGPoint(x: -repairButton.size.width + 150, y: sprite!.position.y + sprite!.size.height/4)
         
         let repairAction = SKAction.repeatForever(               //Track movement
