@@ -1,6 +1,7 @@
 import PlaygroundSupport
 import SpriteKit
 import AppKit
+import AVFoundation
 
 let LEFT_ARROW = 123
 let RIGHT_ARROW = 124
@@ -21,6 +22,8 @@ public class GameScene : SKScene {
     var showingArrows = false                                           //Checks if the player is fixing a track
     
     var fixStatus:SKSpriteNode? = nil                                   //Fixing status bar
+    var fixStatusBack:SKSpriteNode? = nil
+    var fixIcon:SKSpriteNode? = nil
     let maxFixStatusWidth:CGFloat = 250.0
     var maxSpins:CGFloat = 3.0                                          //Number of sequence to complete to fix a track
     var currentSpins:CGFloat = 0.0
@@ -28,6 +31,8 @@ public class GameScene : SKScene {
     
     var distance:Float = 0.0
     var timer:Timer? = nil
+    
+    var audioPlayer:AVAudioPlayer? = nil
     
     public override func didMove (to view: SKView) {
         self.backgroundColor = NSColor(red: 0.43, green: 0.17, blue: 0.0, alpha: 1.0)
@@ -57,6 +62,7 @@ public class GameScene : SKScene {
         
         timer = Timer.scheduledTimer(timeInterval: Double(currentTrack!.speed/100), target: self, selector: #selector(updateDistance), userInfo: nil, repeats: true)
         
+        playSound(file: "train_sound", ext: "mp3")
     }
 
     public override func update(_ currentTime: TimeInterval) {
@@ -64,6 +70,9 @@ public class GameScene : SKScene {
         if(currentTrack!.sprite!.position.y <= -(scene?.size.height)!) {//Checks if the current track is not visible on the screen anymore
             if(currentTrack!.type != "n"){                              //Checks if a broken track has reached the end of the scene
                 if let gameOver = GameOver(fileNamed: "GameOver") {
+                    if let player = audioPlayer {
+                        player.stop()
+                    }
                     saveDistance ()                                     //Saves reached distance
                     gameOver.scaleMode = .aspectFit
                     
@@ -117,6 +126,8 @@ public class GameScene : SKScene {
         if (node.name == "repair_button") {                         //Checks if the repair button was clicked
             node.removeFromParent()                                 //Removes repair button from scene
             showButtonArrows()                                      //Shows the arrow buttons
+            self.addChild(fixStatusBack!)
+            self.addChild(fixIcon!)
         }
     }
     
@@ -139,15 +150,44 @@ public class GameScene : SKScene {
         }
     }
     
+    func playSound(file:String, ext:String) -> Void {
+        let url = Bundle.main.url(forResource: file, withExtension: ext)!
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            guard let player = audioPlayer else { return }
+            
+            player.prepareToPlay()
+            player.play()
+        } catch let error {
+            print(error.localizedDescription)
+        }
+    }
+    
     /*-------------------------------UI-------------------------------*/
     
     func createFixStatus(){
-        fixStatus = SKSpriteNode(color:SKColor.yellow, size: CGSize(width: 0, height: 30))
+        fixStatusBack = SKSpriteNode(color:NSColor(red: 1.04, green: 0.44, blue: 0.41, alpha: 1.0), size: CGSize(width: maxFixStatusWidth + 20, height: 50))
+        
+        fixStatusBack!.position = CGPoint(x: -(scene!.size.width)/2 + 40, y: -(scene!.size.height)/2 + 50)
+        fixStatusBack!.anchorPoint = CGPoint(x: 0.0, y: 0.5)
+        fixStatusBack!.zPosition = 4
+        
+        fixStatus = SKSpriteNode(color:NSColor(red: 0.67, green: 0.27, blue: 0.27, alpha: 1.0), size: CGSize(width: 0, height: 30))
         
         fixStatus!.position = CGPoint(x: -(scene!.size.width)/2 + 50, y: -(scene!.size.height)/2 + 50)
         fixStatus!.anchorPoint = CGPoint(x: 0.0, y: 0.5)
+        fixStatus!.zPosition = 5
+        
+        fixIcon = SKSpriteNode(imageNamed: "repair_feedback [notfixed-1]")
+        
+        fixIcon!.xScale = 0.3
+        fixIcon!.yScale = 0.3
+        
+        fixIcon!.position = CGPoint(x: -(scene!.size.width)/2 + 20, y: -(scene!.size.height)/2 + 50)
+        fixIcon!.zPosition = 4
         
         self.addChild(fixStatus!)
+        
     }
     
     func testLabel () {
@@ -253,7 +293,6 @@ public class GameScene : SKScene {
         for arrow in arrowButtons {                                 //Removes all arrows from the scene
             arrow.removeFromParent()
         }
-        fixStatus!.size.width = 0.0                                 //Hides the fix status from the scene
         
         if(currentTrack!.type != "n"){
             currentTrack!.switchImage(newImage: "track")            //Changes the track's image
@@ -271,6 +310,12 @@ public class GameScene : SKScene {
         
         repairFeedback.removeFromParent()
         repairFeedbackRotate.removeFromParent()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { //Hides the fix status from the scene in 2 seconds
+            self.fixStatus!.size.width = 0.0
+            self.fixStatusBack!.removeFromParent()
+            self.fixIcon!.removeFromParent()
+        }
     }
     
     /*-------------------------------Arrow Buttons-------------------------------*/
