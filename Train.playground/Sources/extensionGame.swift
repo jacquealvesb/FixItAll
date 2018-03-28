@@ -72,6 +72,7 @@ public class GameScene : SKScene {
                 if let gameOver = GameOver(fileNamed: "GameOver") {
                     if let player = audioPlayer {
                         player.stop()
+                        playSound(file: "train_crash", ext: "mp3")
                     }
                     saveDistance ()                                     //Saves reached distance
                     gameOver.scaleMode = .aspectFit
@@ -126,6 +127,7 @@ public class GameScene : SKScene {
         if (node.name == "repair_button") {                         //Checks if the repair button was clicked
             node.removeFromParent()                                 //Removes repair button from scene
             showButtonArrows()                                      //Shows the arrow buttons
+            
             self.addChild(fixStatusBack!)
             self.addChild(fixIcon!)
         }
@@ -166,13 +168,13 @@ public class GameScene : SKScene {
     /*-------------------------------UI-------------------------------*/
     
     func createFixStatus(){
-        fixStatusBack = SKSpriteNode(color:NSColor(red: 1.04, green: 0.44, blue: 0.41, alpha: 1.0), size: CGSize(width: maxFixStatusWidth + 20, height: 50))
+        fixStatusBack = SKSpriteNode(color:NSColor(red: 0.4, green: 0.17, blue: 0.16, alpha: 1.0), size: CGSize(width: maxFixStatusWidth + 20, height: 50))
         
         fixStatusBack!.position = CGPoint(x: -(scene!.size.width)/2 + 40, y: -(scene!.size.height)/2 + 50)
         fixStatusBack!.anchorPoint = CGPoint(x: 0.0, y: 0.5)
         fixStatusBack!.zPosition = 4
         
-        fixStatus = SKSpriteNode(color:NSColor(red: 0.67, green: 0.27, blue: 0.27, alpha: 1.0), size: CGSize(width: 0, height: 30))
+        fixStatus = SKSpriteNode(color:NSColor(red: 0.98, green: 0.63, blue: 0.17, alpha: 1.0), size: CGSize(width: 0, height: 30))
         
         fixStatus!.position = CGPoint(x: -(scene!.size.width)/2 + 50, y: -(scene!.size.height)/2 + 50)
         fixStatus!.anchorPoint = CGPoint(x: 0.0, y: 0.5)
@@ -311,7 +313,7 @@ public class GameScene : SKScene {
         repairFeedback.removeFromParent()
         repairFeedbackRotate.removeFromParent()
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { //Hides the fix status from the scene in 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { //Hides the fix status from the scene in 2 seconds
             self.fixStatus!.size.width = 0.0
             self.fixStatusBack!.removeFromParent()
             self.fixIcon!.removeFromParent()

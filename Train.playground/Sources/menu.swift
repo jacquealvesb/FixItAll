@@ -1,7 +1,11 @@
 import PlaygroundSupport
 import SpriteKit
+import AVFoundation
 
 public class MainMenu : SKScene {
+    
+    var audioPlayer:AVAudioPlayer? = nil
+    var started = false
     
     public override func didMove(to view: SKView){
         self.backgroundColor = NSColor(red: 0.43, green: 0.17, blue: 0.0, alpha: 1.0)
@@ -19,11 +23,18 @@ public class MainMenu : SKScene {
         let location = with.location(in: self)
         let node = self.atPoint(location)
         
-        if(node.name == "play_button"){
+        if(started == false && node.name == "play_button"){
+            started = true
+            
             if let scene = GameScene(fileNamed: "GameScene") {
-                scene.scaleMode = .aspectFit
+                playSound(file: "train_whistle", ext: "mp3")
                 
-                view!.presentScene(scene)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    scene.scaleMode = .aspectFit
+                    
+                    self.view!.presentScene(scene)
+                }
+                
             }
         }
     }
@@ -38,5 +49,18 @@ public class MainMenu : SKScene {
         sprite.position = point
         
         return sprite
+    }
+    
+    func playSound(file:String, ext:String) -> Void {
+        let url = Bundle.main.url(forResource: file, withExtension: ext)!
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            guard let player = audioPlayer else { return }
+            
+            player.prepareToPlay()
+            player.play()
+        } catch let error {
+            print(error.localizedDescription)
+        }
     }
 }
