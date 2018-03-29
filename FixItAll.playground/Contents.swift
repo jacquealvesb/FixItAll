@@ -1,5 +1,5 @@
 //: # Fix it all 🔧
-//: Hi, my name is Jacqueline and I am the creator of Fix it all. Fix it all is a game made for macOS built with SpriteKit, AVFoundation and AppKit. I'll show you how to play
+//: Hi, my name is Jacqueline and I am the creator of Fix it all. Fix it all is a game which you can practice your reflections and agility. It was made for macOS and built with SpriteKit and AVFoundation. I'll show you how to play
 
 //: ## #1 step
 //: When a track is broken, a button shows up. You have to press it to repair the track 🖱
