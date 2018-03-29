@@ -27,7 +27,7 @@ public class GameScene : SKScene {
     let maxFixStatusWidth:CGFloat = 250.0
     var maxSpins:CGFloat = 3.0                                          //Number of sequence to complete to fix a track
     var currentSpins:CGFloat = 0.0
-    var normalTracks = 3                                                //Checks if 3 normal tracks were showed in a roll
+    var normalTracks = 2                                                //Checks if 3 normal tracks were showed in a roll
     
     var distance:Float = 0.0
     var timer:Timer? = nil
