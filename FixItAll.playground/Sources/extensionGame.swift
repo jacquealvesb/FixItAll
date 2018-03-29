@@ -1,6 +1,5 @@
 import PlaygroundSupport
 import SpriteKit
-import AppKit
 import AVFoundation
 
 let LEFT_ARROW = 123
