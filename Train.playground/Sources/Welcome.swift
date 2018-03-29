@@ -13,6 +13,9 @@ public class Welcome : SKScene {
     var currentArrow = 0
     var currentSpins = 0
     
+    let scaleSequence = SKAction.sequence(  [SKAction.scale(to: 1.35, duration: 0.5),
+                                             SKAction.scale(to: 1.3, duration: 0.5)])
+    
     public override func didMove(to view: SKView){
         self.backgroundColor = NSColor(red: 0.43, green: 0.17, blue: 0.0, alpha: 1.0)
         
@@ -20,10 +23,8 @@ public class Welcome : SKScene {
         let train = createSprite(imageName: "train", at: CGPoint(x: 0.0, y: -(scene?.size.height)!/4 - 150), scale: 1.3)
         repairButton = createSprite(imageName: "repair_button", at: CGPoint(x: -250, y: track!.position.y + track!.size.height/4), scale: 1.3)
         
-        let trainSequence = SKAction.sequence(  [SKAction.scale(to: 1.35, duration: 0.5),
-                                                 SKAction.scale(to: 1.3, duration: 0.5)])
-        
-        train.run(SKAction.repeatForever(trainSequence))
+        train.run(SKAction.repeatForever(scaleSequence))
+        repairButton!.run(SKAction.repeatForever(scaleSequence))
         
         
         self.addChild(track!)
@@ -64,6 +65,8 @@ public class Welcome : SKScene {
                 button.name = "left"
                 button.position = CGPoint(x: (scene?.size.width)!/3 - 100, y: -220)
                 button.texture = SKTexture(imageNamed: "arrowHighlighted_button")
+                
+                button.run(SKAction.repeatForever(scaleSequence))
                 break
             case 1:
                 button.name = "up"
@@ -124,6 +127,7 @@ public class Welcome : SKScene {
         switch Int(event.keyCode) {
         case 123:
             checkArrowPress(0)
+            arrowButtons[0].removeAllActions()
             break
         case 126:
             checkArrowPress(1)
@@ -165,7 +169,7 @@ public class Welcome : SKScene {
             fixStatus!.removeFromParent()
             fixIcon!.removeFromParent()
             
-            let playButton = createSprite(imageName: "play_button", at: CGPoint(x: 300, y: 200), scale: 2.0)
+            let playButton = createSprite(imageName: "check", at: CGPoint(x: 300, y: 200), scale: 0.5)
             self.addChild(playButton)
         }
     }

@@ -16,7 +16,7 @@ public class GameOver : SKScene {
         text.fontColor = SKColor.white
         text.position = CGPoint(x: 0, y: (scene!.size.width)/2 - 200)
         
-        text.text = "You were able to walk \(loadDistance ())m"
+        text.text = "You traveled \(loadDistance ())m"
         
         self.addChild(text)
         self.addChild(homeButton)

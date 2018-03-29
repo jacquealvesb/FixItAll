@@ -1,21 +1,21 @@
-//: # Fix it all 
-//: Fix it all is a game made for macOS built wuth SpriteKit, AVFoundation and AppKit. I'll show you how to play
+//: # Fix it all 🔧
+//: Fix it all is a game made for macOS built with SpriteKit, AVFoundation and AppKit. I'll show you how to play
 
 //: ## #1 step
-//: When a track is broken, a button shows up. You have to press it to repair the track
+//: When a track is broken, a button shows up. You have to press it to repair the track 🖱
 /*:
  ![repair button](repair_button.png)
  */
 //: ## #2 step
-//: When you press the button, arrows are shonwed on the corner of the screen. Use your keyboard to press the indicated arrow
+//: When you press the button, arrows are shown on the corner of the screen. Use your keyboard to press the highlighted arrow ⌨️
 /*:
  ![arrow](arrowHighlighted_button.png)
  */
 
 //: ## #3 step
-//: When you finish to press all 4 arrows, the status bar increases. When you complete the sequence 3 times, the status bar is fully completed and the track is fixed
+//: When you finish to press all 4 arrows, the status bar increases. When you complete the sequence 3 times, the status bar becomes full and the track is fixed. Up top! 🙋‍♀️
 
-//: # Be quick!
+//: # So, be quick!
 //: ## Fix the track before the train reaches the broken part
 //: Now that you know the basics, [let's have some fun](Game)?
 
